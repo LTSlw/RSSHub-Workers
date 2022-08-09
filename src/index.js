@@ -1,4 +1,23 @@
-const version = "RSSHub-Workers v0.0.1"
+const version = "RSSHub-Workers v0.1.0"
+
+import * as def from "./default"
+
+const router = {
+	"/bilibili/bangumi": {
+		pnum: 1, //参数数量
+		preq: 1, //必选参数数量
+		params: ["mediaid"]
+	}
+};
+
+var lib;
+import * as lib_bilibili_bangumi from "./lib/bilibili/bangumi";
+
+function switchLib (router) {
+	switch (router) {
+	case "/bilibili/bangumi": lib = lib_bilibili_bangumi; break;
+	}
+}
 
 const template = {
 	rss: {
@@ -6,6 +25,8 @@ const template = {
 		end:`</channel></rss>`
 	}
 };
+
+var params = {};
 
 //不支持属性
 const tagList = {
@@ -89,15 +110,18 @@ let feed = {
 					for (let j = 0; j < data[tag].length; j++) {
 						str += this.strTag(tag, this.strXml(data[tag][j], tagList, tag));
 					}
-				} else {
+				}
+				else {
 					str += this.strTag(tag, this.strXml(data[tag], tagList, tag));
 				}
-			} else {
+			}
+			else {
 				if (Array.isArray(data[tag])) {
 					for (let j = 0; j < data[tag].length; j++) {
 						str += this.strTag(tag, data[tag][j]);
 					}
-				} else {
+				}
+				else {
 					str += this.strTag(tag, data[tag]);
 				}
 			}
@@ -106,51 +130,64 @@ let feed = {
 	}
 };
 
-function createExampleRss() {
-	feed.data = {
-		title: `Liftoff News`,
-		link: `http://liftoff.msfc.nasa.gov/`,
-		description: `Liftoff to Space Exploration.`,
-		language: `en-us`,
-		pubDate: `Tue, 10 Jun 2003 04:00:00 GMT`,
-		lastBuildDate: `Tue, 10 Jun 2003 09:41:01 GMT`,
-		docs: `http://blogs.law.harvard.edu/tech/rss`,
-		managingEditor: `editor@example.com`,
-		webMaster: `webmaster@example.com`,
-		item: [
-			{
-				title: `Star City`,
-				link: `http://liftoff.msfc.nasa.gov/news/2003/news-starcity.asp`,
-				description: `How do Americans get ready to work with Russians aboard the International Space Station? They take a crash course in culture, language and protocol at Russia's &lt;a href="http://howe.iki.rssi.ru/GCTC/gctc_e.htm"&gt;Star City&lt;/a&gt;.`,
-				pubDate: `Tue, 03 Jun 2003 09:39:21 GMT`,
-				guid: `http://liftoff.msfc.nasa.gov/2003/06/03.html#item573`
-			},
-			{
-				description: `Sky watchers in Europe, Asia, and parts of Alaska and Canada will experience a &lt;a href="http://science.nasa.gov/headlines/y2003/30may_solareclipse.htm"&gt;partial eclipse of the Sun&lt;/a&gt; on Saturday, May 31st.`,
-				pubDate: `Fri, 30 May 2003 11:06:42 GMT`,
-				guid: `http://liftoff.msfc.nasa.gov/2003/05/30.html#item572`
-			},
-			{
-				title: `The Engine That Does More`,
-				link: `http://liftoff.msfc.nasa.gov/news/2003/news-VASIMR.asp`,
-				description: `Before man travels to Mars, NASA hopes to design new engines that will let us fly through the Solar System more quickly.  The proposed VASIMR engine would do that.`,
-				pubDate: `Tue, 27 May 2003 08:37:32 GMT`,
-				guid: `http://liftoff.msfc.nasa.gov/2003/05/27.html#item571`
-			},
-			{
-				title: `Astronauts' Dirty Laundry`,
-				link: `http://liftoff.msfc.nasa.gov/news/2003/news-laundry.asp`,
-				description: `Compared to earlier spacecraft, the International Space Station has many luxuries, but laundry facilities are not one of them.  Instead, astronauts have other options.`,
-				pubDate: `Tue, 20 May 2003 08:56:02 GMT`,
-				guid: `http://liftoff.msfc.nasa.gov/2003/05/20.html#item570`
-			},
-		]
+function selectRouter (path) {
+	const query = path.split("/");
+	console.log("query", query);
+	let r = "";
+	let cur = 1;
+	for (let i = 1; i < query.length; i++) {
+		r += "/" + query[i];
+		if (router[r]){
+			cur = i + 1;
+			break;
+		}
 	}
+	if (!router[r]) {
+		return -1;
+	}
+	
+	if (router[r].pnum < query.length - cur ||
+		router[r].preq > query.length - cur) {
+		return -2;
+	}
+	for (let i = 0; i < query.length - cur; i++) {
+		params[router[r].params[i]] = query[cur + i];
+	}
+	switchLib(r);
+	return r;
 }
 
 export default {
 	async fetch(request) {
-		createExampleRss();
+		console.log("url", request.url);
+		const path = new URL(request.url).pathname;
+		if (path === "/favicon.ico") { //icon
+			return Response.redirect("https://raw.githubusercontent.com/DIYgod/RSSHub/master/docs/.vuepress/public/logo.png", 301);
+		}
+
+		if (path === "/") {
+			feed.data = def.createExampleRss();
+			return new Response(feed.strRss(), {
+				status: 200,
+				headers: {
+					"Content-Type": "application/xml"
+				}
+			});
+		}
+
+		let r = selectRouter(path);
+		switch(r){
+		case -1:
+			console.log("Router not exist.");
+			return new Response("Router not exist.");
+		case -2:
+			console.log("Too much or less params.");
+			return new Response("Too much or less params.");
+		}
+		console.log("Router", r);
+		console.log("Params", params);
+
+		feed.data = await lib.main(params);
 		return new Response(feed.strRss(), {
 			status: 200,
 			headers: {
