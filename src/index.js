@@ -1,27 +1,28 @@
-const version = "RSSHub-Workers v0.1.0"
+const version = "RSSHub-Workers v0.1.1"
 
-import * as def from "./default"
-
+/*pnum 参数数量, preq 必选参数数量*/
 const router = {
-	"/bilibili/bangumi": {
-		pnum: 1, //参数数量
-		preq: 1, //必选参数数量
-		params: ["mediaid"]
-	}
+	"/bilibili/bangumi": { pnum: 1, preq: 1, params: ["mediaid"] },
+	"/bilibili/app":     { pnum: 1, preq: 0, params: ["id"] },
+	"/konpic/pictures":  { pnum: 1, preq: 1, params: ["category"]}
 };
 
 var lib;
 import * as lib_bilibili_bangumi from "./lib/bilibili/bangumi";
+import * as lib_bilibili_app     from "./lib/bilibili/app";
+import * as lib_konpic_pictures  from "./lib/konpic/pictures";
 
 function switchLib (router) {
 	switch (router) {
 	case "/bilibili/bangumi": lib = lib_bilibili_bangumi; break;
+	case "/bilibili/app":     lib = lib_bilibili_app; break;
+	case "/konpic/pictures":  lib = lib_konpic_pictures; break;
 	}
 }
 
 const template = {
 	rss: {
-		begin: `<?xml version="1.0"?><rss version="2.0"><channel>`,
+		begin: `<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel>`,
 		end:`</channel></rss>`
 	}
 };
@@ -165,12 +166,11 @@ export default {
 			return Response.redirect("https://raw.githubusercontent.com/DIYgod/RSSHub/master/docs/.vuepress/public/logo.png", 301);
 		}
 
-		if (path === "/") {
-			feed.data = def.createExampleRss();
-			return new Response(feed.strRss(), {
+		if (path === "/") {//def.changeLog()
+			return new Response((await fetch(`https://raw.githubusercontent.com/lw-tech-soft/RSSHub-Workers/main/html/index.html`)).body, {
 				status: 200,
 				headers: {
-					"Content-Type": "application/xml"
+					"Content-Type": "text/html; charset=utf-8"
 				}
 			});
 		}
