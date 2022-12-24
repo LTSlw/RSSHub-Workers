@@ -18,8 +18,19 @@ class OnedriveHandler {
     }
 }
 
+class ThumbHandler {
+	constructor(ThumbLinks) {
+		this.ThumbLinks = ThumbLinks;
+	}
+    element(element) {
+		let link = element.getAttribute("data-src").replace("../..", "https://picture.k-on.space");
+		this.ThumbLinks.push(link);
+    }
+}
+
 export async function main(params) {
 	let OnedriveLinks = [];
+	let ThumbLinks = [];
 	let url = "";
 	if (config[params["category"]]) {
 		url = config[params["category"]];
@@ -28,9 +39,10 @@ export async function main(params) {
 	}
     let res = await fetch(url);
     let hr = new HTMLRewriter();
-    await hr.on('div[class="onedrive"]', new OnedriveHandler(OnedriveLinks));
+    await hr.on('div[class="onedrive"]', new OnedriveHandler(OnedriveLinks))
+			.on('a[class="submain-unit-img"] img', new ThumbHandler(ThumbLinks));
 	await hr.transform(res).blob();
-	console.log(`${params["category"]} total: ${OnedriveLinks.length} pictures.`);
+	console.log(`${params["category"]} total: ${OnedriveLinks.length} pictures(${OnedriveLinks.length}/${ThumbLinks.length}).`);
 
 	let items = [];
 
@@ -38,13 +50,12 @@ export async function main(params) {
 		items.push({
 			title: `Pic`,
 			link: OnedriveLinks[i],
-			data: new Date().toUTCString(),
-			description: OnedriveLinks[i]
+			description: `<![CDATA[<img src="${ThumbLinks[i]}"/>]]>`
 		})
 	}
 	
     return {
-		title: `轻音图网`,
+		title: `轻音图网 - ${params["category"]}`,
 		link: `https://picture.k-on.space/`,
 		description: `专注分享收藏级的轻音少女图片`,
 		language: `zh-cn`,
