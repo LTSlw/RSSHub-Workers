@@ -21,20 +21,24 @@ async function main(params2) {
   console.log(data);
   let episodes = [];
   if (data.result.main_section && data.result.main_section.episodes) {
-    episodes = episodes.concat(data.result.main_section.episodes.map((item) => ({
-      title: `<![CDATA[ \u7B2C${item.title}\u8BDD ${item.long_title} ]]>`,
-      description: `<![CDATA[ <img src="${item.cover}" referrerpolicy="no-referrer"> ]]>`,
-      link: `https://www.bilibili.com/bangumi/play/ep${item.id}`
-    })));
+    episodes = episodes.concat(
+      data.result.main_section.episodes.map((item) => ({
+        title: `<![CDATA[ \u7B2C${item.title}\u8BDD ${item.long_title} ]]>`,
+        description: `<![CDATA[ <img src="${item.cover}" referrerpolicy="no-referrer"> ]]>`,
+        link: `https://www.bilibili.com/bangumi/play/ep${item.id}`
+      }))
+    );
   }
   if (data.result.section) {
     data.result.section.forEach((section) => {
       if (section.episodes) {
-        episodes = episodes.concat(section.episodes.map((item) => ({
-          title: `<![CDATA[ ${item.title} ${item.long_title} ]]>`,
-          description: `<![CDATA[ <img src="${item.cover}" referrerpolicy="no-referrer"> ]]>`,
-          link: `https://www.bilibili.com/bangumi/play/ep${item.id}`
-        })));
+        episodes = episodes.concat(
+          section.episodes.map((item) => ({
+            title: `<![CDATA[ ${item.title} ${item.long_title} ]]>`,
+            description: `<![CDATA[ <img src="${item.cover}" referrerpolicy="no-referrer"> ]]>`,
+            link: `https://www.bilibili.com/bangumi/play/ep${item.id}`
+          }))
+        );
       }
     });
   }
@@ -159,12 +163,68 @@ async function main3(params2) {
   };
 }
 
+// src/lib/anime/bocchiTheRock.js
+var bocchiTheRock_exports = {};
+__export(bocchiTheRock_exports, {
+  main: () => main4
+});
+var NewsHandler = class {
+  constructor() {
+    this.str = "";
+    this.data = {};
+  }
+  text(text) {
+    this.str += text.text;
+    if (text.lastInTextNode) {
+      if (this.str.indexOf("btrNews") !== -1) {
+        this.data = JSON.parse(this.str.slice(this.str.indexOf("{"), this.str.lastIndexOf("}") + 1));
+      }
+      this.str = "";
+    }
+  }
+  getData() {
+    return this.data;
+  }
+};
+async function main4(params2) {
+  const url = "https://bocchi.rocks/news/";
+  let res = await fetch(url);
+  let hr = new HTMLRewriter();
+  let handler = new NewsHandler();
+  await hr.on("script", handler);
+  await hr.transform(res).blob();
+  let items = [];
+  handler.getData().articles.forEach((article) => {
+    let item = {
+      title: `<![CDATA[${article.title}]]>`,
+      description: `<![CDATA[${article.body}]]>`,
+      link: `${url}?id=${article.id}`,
+      pubDate: new Date(article.pubDate.replaceAll(".", "-")).toUTCString(),
+      category: []
+    };
+    article.categories.forEach((cat) => {
+      item.category.push(cat);
+    });
+    items.push(item);
+  });
+  return {
+    title: `NEWS | TV\u30A2\u30CB\u30E1\u300C\u307C\u3063\u3061\u30FB\u3056\u30FB\u308D\u3063\u304F\uFF01\u300D\u516C\u5F0F\u30B5\u30A4\u30C8`,
+    link: `https://bocchi.rocks/news/`,
+    description: `NEWS | \u5B64\u72EC\u6447\u6EDA`,
+    language: `ja-jp`,
+    pubDate: new Date().toUTCString(),
+    lastBuildDate: new Date().toUTCString(),
+    item: items
+  };
+}
+
 // src/index.js
 var version = "RSSHub-Workers v0.1.1";
 var router = {
   "/bilibili/bangumi": { pnum: 1, preq: 1, params: ["mediaid"] },
   "/bilibili/app": { pnum: 1, preq: 0, params: ["id"] },
-  "/konpic/pictures": { pnum: 1, preq: 1, params: ["category"] }
+  "/konpic/pictures": { pnum: 1, preq: 1, params: ["category"] },
+  "/anime/bocchiTheRock": { pnum: 1, preq: 0, params: ["category"] }
 };
 var lib;
 function switchLib(router2) {
@@ -177,6 +237,9 @@ function switchLib(router2) {
       break;
     case "/konpic/pictures":
       lib = pictures_exports;
+      break;
+    case "/anime/bocchiTheRock":
+      lib = bocchiTheRock_exports;
       break;
   }
 }

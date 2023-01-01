@@ -5,6 +5,19 @@ RSSHub的Cloudflare Workers版本。
 
 ## 路由
 
+### Anime News
+
+#### 孤独摇滚！
+
+ぼっち・ざ・ろっく！ | BOCCHI THE ROCK!
+
+作者:[@LTSlw](https://github.com/LTSlw)  
+示例:[/anime/bocchiTheRock/news](/anime/bocchiTheRock/news)  
+路由:`/anime/bocchiTheRock/:category?`  
+参数:
+
++ category, 可选 - 可选值`news`,默认值`news`
+
 ### Bilibili - 番剧
 
 作者:[@DIYgod](https://github.com/DIYgod)  
@@ -35,7 +48,7 @@ android|iphone|ipad|win|android_tv_yst|android_car|pc_client
 
 ### [轻音图网](https://picture.k-on.space/)
 
-作者:[@LTSlw](https://github.com/lw-tech-soft)  
+作者:[@LTSlw](https://github.com/LTSlw)  
 示例:[/konpic/pictures/group](/konpic/pictures/group)  
 路由:`/konpic/pictures/:category`  
 参数:
