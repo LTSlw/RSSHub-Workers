@@ -214,8 +214,57 @@ async function main4(params2) {
     language: `ja-jp`,
     pubDate: new Date().toUTCString(),
     lastBuildDate: new Date().toUTCString(),
+    ttl: 1440,
     item: items
   };
+}
+
+// src/lib/anime/tenten_kakumei.js
+var tenten_kakumei_exports = {};
+__export(tenten_kakumei_exports, {
+  main: () => main5
+});
+var categories = ["all", "info", "onair", "package", "music", "event", "special"];
+var baseurl = "https://tenten-kakumei.com/";
+async function main5(params2) {
+  const category = params2.category ? await getCategory(params2.category) : "all";
+  console.log("Category: ", category);
+  const data = await (await fetch("https://tenten-kakumei.com/news.json")).json();
+  let items = [];
+  for (let i = 0; i < data.length; i++) {
+    if ("all" !== category && data[i].cat !== category) {
+      continue;
+    }
+    let item = {
+      title: `<![CDATA[ ${data[i].title} ]]>`,
+      link: baseurl + data[i].url,
+      pubDate: new Date(data[i].day.replaceAll("/", "-")).toUTCString(),
+      category: [data[i].cat]
+    };
+    items.push(item);
+  }
+  return {
+    title: `<![CDATA[ \u30CB\u30E5\u30FC\u30B9 | TV\u30A2\u30CB\u30E1\u300C\u8EE2\u751F\u738B\u5973\u3068\u5929\u624D\u4EE4\u5B22\u306E\u9B54\u6CD5\u9769\u547D\u300D\u516C\u5F0F\u30B5\u30A4\u30C8${"all" !== category ? ` - ${category}` : ""} ]]>`,
+    link: `https://tenten-kakumei.com/news.html`,
+    image: {
+      url: "https://tenten-kakumei.com/images/top/top_pc_logo2_pc_01.png",
+      title: `<![CDATA[ \u30CB\u30E5\u30FC\u30B9 | TV\u30A2\u30CB\u30E1\u300C\u8EE2\u751F\u738B\u5973\u3068\u5929\u624D\u4EE4\u5B22\u306E\u9B54\u6CD5\u9769\u547D\u300D\u516C\u5F0F\u30B5\u30A4\u30C8 ]]>`,
+      link: `https://tenten-kakumei.com/news.html`
+    },
+    description: `NEWS | \u8F6C\u751F\u738B\u5973\u4E0E\u5929\u624D\u5343\u91D1\u7684\u9B54\u6CD5\u9769\u547D`,
+    language: "ja-jp",
+    lastBuildDate: new Date().toUTCString(),
+    ttl: 1440,
+    item: items
+  };
+}
+async function getCategory(cat) {
+  for (let i = 0; i < categories.length; i++) {
+    if (cat === categories[i]) {
+      return cat;
+    }
+  }
+  return "all";
 }
 
 // src/index.js
@@ -224,7 +273,8 @@ var router = {
   "/bilibili/bangumi": { pnum: 1, preq: 1, params: ["mediaid"] },
   "/bilibili/app": { pnum: 1, preq: 0, params: ["id"] },
   "/konpic/pictures": { pnum: 1, preq: 1, params: ["category"] },
-  "/anime/bocchiTheRock": { pnum: 1, preq: 0, params: ["category"] }
+  "/anime/bocchiTheRock": { pnum: 1, preq: 0, params: ["category"] },
+  "/anime/tenten_kakumei": { pnum: 1, preq: 0, params: ["category"] }
 };
 var lib;
 function switchLib(router2) {
@@ -240,6 +290,9 @@ function switchLib(router2) {
       break;
     case "/anime/bocchiTheRock":
       lib = bocchiTheRock_exports;
+      break;
+    case "/anime/tenten_kakumei":
+      lib = tenten_kakumei_exports;
       break;
   }
 }

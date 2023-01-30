@@ -47,6 +47,7 @@ export async function main(params) {
 		language: `ja-jp`,
 		pubDate: new Date().toUTCString(),
 		lastBuildDate: new Date().toUTCString(),
+		ttl: 1440,
 		item: items
 	};
 }

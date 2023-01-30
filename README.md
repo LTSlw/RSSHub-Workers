@@ -18,6 +18,17 @@ RSSHub的Cloudflare Workers版本。
 
 + category, 可选 - 可选值`news`,默认值`news`
 
+#### 转生王女与天才千金的魔法革命
+
+転生王女と天才令嬢の魔法革命
+
+作者:[@LTSlw](https://github.com/LTSlw)  
+示例:[anime/tenten_kakumei](anime/tenten_kakumei)  
+路由:`anime/tenten_kakumei/:category?`  
+参数:
+
++ category, 可选 - 可选值`all`, `info`, `onair`, `package`, `music`, `event`, `special`,默认值`all`
+
 ### Bilibili - 番剧
 
 作者:[@DIYgod](https://github.com/DIYgod)  

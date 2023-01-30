@@ -2,10 +2,11 @@ const version = "RSSHub-Workers v0.1.1"
 
 /*pnum 参数数量, preq 必选参数数量*/
 const router = {
-	"/bilibili/bangumi":    { pnum: 1, preq: 1, params: ["mediaid"] },
-	"/bilibili/app":        { pnum: 1, preq: 0, params: ["id"] },
-	"/konpic/pictures":     { pnum: 1, preq: 1, params: ["category"]},
-	"/anime/bocchiTheRock": { pnum: 1, preq: 0, params: ["category"]}
+	"/bilibili/bangumi":     { pnum: 1, preq: 1, params: ["mediaid"] },
+	"/bilibili/app":         { pnum: 1, preq: 0, params: ["id"] },
+	"/konpic/pictures":      { pnum: 1, preq: 1, params: ["category"]},
+	"/anime/bocchiTheRock":  { pnum: 1, preq: 0, params: ["category"]},
+	"/anime/tenten_kakumei": { pnum: 1, preq: 0, params: ["category"]}
 };
 
 var lib;
@@ -13,6 +14,7 @@ import * as lib_bilibili_bangumi       from "./lib/bilibili/bangumi";
 import * as lib_bilibili_app           from "./lib/bilibili/app";
 import * as lib_konpic_pictures        from "./lib/konpic/pictures";
 import * as lib_anime_bocchiTheRock    from "./lib/anime/bocchiTheRock";
+import * as lib_anime_tenten_kakumei   from "./lib/anime/tenten_kakumei";
 
 function switchLib (router) {
 	switch (router) {
@@ -20,6 +22,7 @@ function switchLib (router) {
 	case "/bilibili/app":     lib = lib_bilibili_app; break;
 	case "/konpic/pictures":  lib = lib_konpic_pictures; break;
 	case "/anime/bocchiTheRock":    lib = lib_anime_bocchiTheRock; break;
+	case "/anime/tenten_kakumei":   lib = lib_anime_tenten_kakumei; break;
 	}
 }
 

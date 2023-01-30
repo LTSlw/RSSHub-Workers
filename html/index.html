@@ -1309,6 +1309,41 @@ body,
   background-color: var(--color-prettylights-syntax-markup-deleted-bg);
 }
 
+/* From extension ms-toolsai.jupyter */
+/* These classnames are inherited from bootstrap, but are present in most notebook renderers */
+
+.alert {
+    width: auto;
+    padding: 1em;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+.alert > *:last-child {
+    margin-bottom: 0;
+}
+#preview > .alert:last-child {
+    /* Prevent this being set to zero by the default notebook stylesheet */
+    padding-bottom: 1em;
+}
+
+.alert-success {
+    /* Note there is no suitable color available, so we just copy "info" */
+    background-color: var(--theme-info-background);
+    color: var(--theme-info-foreground);
+}
+.alert-info {
+    background-color: var(--theme-info-background);
+    color: var(--theme-info-foreground);
+}
+.alert-warning {
+    background-color: var(--theme-warning-background);
+    color: var(--theme-warning-foreground);
+}
+.alert-danger {
+    background-color: var(--theme-error-background);
+    color: var(--theme-error-foreground);
+}
+
 </style>
         
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
@@ -1351,6 +1386,15 @@ RSSHub的Cloudflare Workers版本。</p>
 参数:</p>
 <ul>
 <li>category, 可选 - 可选值<code>news</code>,默认值<code>news</code></li>
+</ul>
+<h4 id="转生王女与天才千金的魔法革命">转生王女与天才千金的魔法革命</h4>
+<p>転生王女と天才令嬢の魔法革命</p>
+<p>作者:<a href="https://github.com/LTSlw">@LTSlw</a><br>
+示例:<a href="anime/tenten_kakumei">anime/tenten_kakumei</a><br>
+路由:<code>anime/tenten_kakumei/:category?</code><br>
+参数:</p>
+<ul>
+<li>category, 可选 - 可选值<code>all</code>, <code>info</code>, <code>onair</code>, <code>package</code>, <code>music</code>, <code>event</code>, <code>special</code>,默认值<code>all</code></li>
 </ul>
 <h3 id="bilibili---番剧">Bilibili - 番剧</h3>
 <p>作者:<a href="https://github.com/DIYgod">@DIYgod</a><br>
