@@ -6,7 +6,7 @@ const router = {
 	"/bilibili/app":         { pnum: 1, preq: 0, params: ["id"] },
 	"/konpic/pictures":      { pnum: 1, preq: 1, params: ["category"]},
 	"/anime/bocchiTheRock":  { pnum: 1, preq: 0, params: ["category"]},
-	"/anime/tenten_kakumei": { pnum: 1, preq: 0, params: ["category"]}
+	"/anime/tenten_kakumei": { pnum: 2, preq: 0, params: ["type", "category"]}
 };
 
 var lib;

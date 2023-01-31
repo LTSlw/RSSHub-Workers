@@ -226,20 +226,124 @@ __export(tenten_kakumei_exports, {
 });
 var categories = ["all", "info", "onair", "package", "music", "event", "special"];
 var baseurl = "https://tenten-kakumei.com/";
+var newsData;
+var StoryHandler = class {
+  constructor() {
+    this.items = [];
+    this.item = { title: "" };
+  }
+  async element(element) {
+    if (element.getAttribute("class") === "sp_title") {
+      element.onEndTag((endTag) => {
+        this.item.title = `<![CDATA[ ${this.item.title}]]>`;
+        this.items.push(this.item);
+        this.item = { title: "" };
+      });
+    }
+    if (element.tagName !== "a") {
+      return;
+    }
+    console.log("[StoryHandler]", element.getAttribute("href"));
+    let href = element.getAttribute("href");
+    let res = await fetch(baseurl + href);
+    let hr = new HTMLRewriter();
+    let contentHandler = new StoryContentHandler();
+    let thumbnailsHandler = new StoryThumbnailsHandler();
+    await hr.on('div[class="story_content"] *', contentHandler).on('li[class="thumbnail-item"] img', thumbnailsHandler);
+    await hr.transform(res).blob();
+    for (let i = 0; i < newsData.length; i++) {
+      if (newsData[i].url === href) {
+        this.item.pubDate = new Date(newsData[i].day.replaceAll("/", "-")).toUTCString();
+        break;
+      }
+    }
+    this.item.description = `<![CDATA[ ${contentHandler.getContent()}${thumbnailsHandler.getThumbnailsHTML()}]]>`;
+    this.item.link = baseurl + href;
+  }
+  text(text) {
+    this.item.title += text.text.trim();
+  }
+  getItems() {
+    return this.items;
+  }
+};
+var StoryContentHandler = class {
+  constructor() {
+    this.content = "";
+  }
+  element(element) {
+    let openingTag = element.tagName;
+    for (let i of element.attributes) {
+      openingTag += ` ${i[0]}="${i[1]}"`;
+    }
+    try {
+      element.onEndTag((endTag) => {
+        this.content += `</${endTag.name}>`;
+      });
+    } catch (e) {
+      openingTag += "/";
+    }
+    this.content += `<${openingTag}>`;
+  }
+  text(text) {
+    this.content += text.text;
+  }
+  getContent() {
+    return this.content;
+  }
+};
+var StoryThumbnailsHandler = class {
+  constructor() {
+    this.thumbnails = [];
+  }
+  element(element) {
+    this.thumbnails.push(element.getAttribute("src").replace("../", baseurl));
+  }
+  getThumbnails() {
+    return this.thumbnails;
+  }
+  getThumbnailsHTML() {
+    let html = "";
+    for (let i = 0; i < this.thumbnails.length; i++) {
+      html += `<img src="${this.thumbnails[i]}"/>`;
+    }
+    return html;
+  }
+};
 async function main5(params2) {
-  const category = params2.category ? await getCategory(params2.category) : "all";
+  newsData = await (await fetch("https://tenten-kakumei.com/news.json")).json();
+  if (params2.type !== "story") {
+    return handleNews(params2.category);
+  }
+  const url = "https://tenten-kakumei.com/story.html";
+  let res = await fetch(url);
+  let hr = new HTMLRewriter();
+  let handler = new StoryHandler();
+  await hr.on('div[class="sp_box border_box"] a', handler).on('div[class="sp_title"]', handler);
+  await hr.transform(res).blob();
+  return {
+    title: `<![CDATA[ \u30B9\u30C8\u30FC\u30EA\u30FC | TV\u30A2\u30CB\u30E1\u300C\u8EE2\u751F\u738B\u5973\u3068\u5929\u624D\u4EE4\u5B22\u306E\u9B54\u6CD5\u9769\u547D\u300D\u516C\u5F0F\u30B5\u30A4\u30C8 ]]>`,
+    link: `https://tenten-kakumei.com/story.html`,
+    description: `STORY | \u8F6C\u751F\u738B\u5973\u4E0E\u5929\u624D\u5343\u91D1\u7684\u9B54\u6CD5\u9769\u547D`,
+    language: "ja-jp",
+    lastBuildDate: new Date().toUTCString(),
+    ttl: 1440,
+    item: handler.getItems()
+  };
+}
+async function handleNews(cat) {
+  const category = cat ? await getCategory(cat) : "all";
   console.log("Category: ", category);
-  const data = await (await fetch("https://tenten-kakumei.com/news.json")).json();
   let items = [];
-  for (let i = 0; i < data.length; i++) {
-    if ("all" !== category && data[i].cat !== category) {
+  for (let i = 0; i < newsData.length; i++) {
+    if ("all" !== category && newsData[i].cat !== category) {
       continue;
     }
     let item = {
-      title: `<![CDATA[ ${data[i].title} ]]>`,
-      link: baseurl + data[i].url,
-      pubDate: new Date(data[i].day.replaceAll("/", "-")).toUTCString(),
-      category: [data[i].cat]
+      title: `<![CDATA[ ${newsData[i].title} ]]>`,
+      link: baseurl + newsData[i].url,
+      pubDate: new Date(newsData[i].day.replaceAll("/", "-")).toUTCString(),
+      category: [newsData[i].cat]
     };
     items.push(item);
   }
@@ -274,7 +378,7 @@ var router = {
   "/bilibili/app": { pnum: 1, preq: 0, params: ["id"] },
   "/konpic/pictures": { pnum: 1, preq: 1, params: ["category"] },
   "/anime/bocchiTheRock": { pnum: 1, preq: 0, params: ["category"] },
-  "/anime/tenten_kakumei": { pnum: 1, preq: 0, params: ["category"] }
+  "/anime/tenten_kakumei": { pnum: 2, preq: 0, params: ["type", "category"] }
 };
 var lib;
 function switchLib(router2) {

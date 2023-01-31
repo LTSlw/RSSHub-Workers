@@ -24,10 +24,11 @@ RSSHub的Cloudflare Workers版本。
 
 作者:[@LTSlw](https://github.com/LTSlw)  
 示例:[anime/tenten_kakumei](anime/tenten_kakumei)  
-路由:`anime/tenten_kakumei/:category?`  
+路由:`anime/tenten_kakumei/:type?/:category?`  
 参数:
 
-+ category, 可选 - 可选值`all`, `info`, `onair`, `package`, `music`, `event`, `special`,默认值`all`
++ type, 可选 - 可选值`news`, `story`, 默认值`news`
++ category, 可选 - 在`type = news`时有意义, 可选值`all`, `info`, `onair`, `package`, `music`, `event`, `special`, 默认值`all`
 
 ### Bilibili - 番剧
 
